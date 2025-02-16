@@ -7,43 +7,47 @@ const RulesManager = {
         maxConsecutiveShifts: 5
     },
 
-    // Kontrola obsazení služeb
-    checkOccupancy(shifts, date) {
-        const violations = [];
-        const dayShifts = {
-            R: 0,  // Ranní
-            O: 0,  // Odpolední
-            RO: 0  // Ranní+Odpolední
-        };
-        const nightShifts = {
-            N: 0,  // Noční
-            NSK: 0 // Noční staniční
-        };
+ // Kontrola obsazení služeb
+checkOccupancy(shifts, date) {
+    const violations = [];
+    const dayShifts = {
+        R: 0,  // Ranní
+        O: 0,  // Odpolední
+        RO: 0  // Ranní+Odpolední
+    };
+    const nightShifts = {
+        N: 0,  // Noční
+        NSK: 0 // Noční staniční
+    };
 
-        // Počítání směn
-        Object.entries(shifts).forEach(([key, shift]) => {
-            if (dayShifts.hasOwnProperty(shift)) {
-                dayShifts[shift]++;
-            }
-            if (nightShifts.hasOwnProperty(shift)) {
-                nightShifts[shift]++;
-            }
-        });
-
-        // Kontrola denních směn
-        const totalDayStaff = dayShifts.R + dayShifts.O + (dayShifts.RO * 2);
-        if (totalDayStaff < this.generalRules.minDayStaff) {
-            violations.push(`Nedostatečný počet denních služeb (${totalDayStaff}/${this.generalRules.minDayStaff})`);
+    // Počítání směn
+    Object.entries(shifts).forEach(([key, shift]) => {
+        if (dayShifts.hasOwnProperty(shift)) {
+            dayShifts[shift]++;
         }
-
-        // Kontrola nočních směn
-        const totalNightStaff = Object.values(nightShifts).reduce((a, b) => a + b, 0);
-        if (totalNightStaff < this.generalRules.minNightStaff) {
-            violations.push(`Nedostatečný počet nočních služeb (${totalNightStaff}/${this.generalRules.minNightStaff})`);
+        if (nightShifts.hasOwnProperty(shift)) {
+            nightShifts[shift]++;
         }
+    });
 
-        return violations;
-    },
+    // Kontrola denních směn
+    const totalDayStaff = dayShifts.R + dayShifts.O + (dayShifts.RO * 2);
+    if (totalDayStaff > 4) {
+        violations.push(`Příliš mnoho denních služeb (${totalDayStaff}/4)`);
+    } else if (totalDayStaff === 4) {
+        if ((dayShifts.R !== 2 || dayShifts.O !== 2) && (dayShifts.RO !== 1 || dayShifts.R !== 1 || dayShifts.O !== 1)) {
+            violations.push('Nesprávná kombinace denních služeb (musí být buď 2xR+2xO, nebo 1xRO+1xR+1xO)');
+        }
+    }
+
+    // Kontrola nočních směn
+    const totalNightStaff = Object.values(nightShifts).reduce((a, b) => a + b, 0);
+    if (totalNightStaff !== 1) {
+        violations.push(`Nesprávný počet nočních služeb (${totalNightStaff}/1)`);
+    }
+
+    return violations;
+}
 
     // Kontrola po sobě jdoucích směn
     checkConsecutiveShifts(shifts, employee) {
