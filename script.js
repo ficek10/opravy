@@ -243,33 +243,21 @@ function refreshTable() {
     loadSavedData();
     ShiftManager.updateStats();
 }
-// modules/shifts.js
-const ShiftManager = {
-    // ...
+// Validace služeb
+function validateShifts() {
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    
+    const shifts = ShiftManager.getShifts(); // Předpokládejme, že tato metoda existuje a vrací aktuální stav služeb
+    const year = yearSelect.value;
+    const month = monthSelect.value;
 
-    // Získání aktuálního stavu služeb
-    getShifts() {
-        const shifts = {};
-        const monthSelect = document.getElementById('monthSelect');
-        const yearSelect = document.getElementById('yearSelect');
-        
-        EmployeeManager.getEmployeesList().forEach(employee => {
-            const daysInMonth = new Date(yearSelect.value, monthSelect.value, 0).getDate();
-            for (let day = 1; day <= daysInMonth; day++) {
-                const select = document.querySelector(
-                    `select[data-employee="${employee}"][data-day="${day}"]`
-                );
-                if (select) {
-                    shifts[`${employee}-${day}`] = select.value;
-                }
-            }
-        });
-
-        return shifts;
-    },
-
-    // ...
-};
-
-// Export pro použití v jiných modulech
-window.ShiftManager = ShiftManager;
+    const violations = RulesManager.validateAll(shifts, year, month);
+    
+    // Zpracování a zobrazení porušení pravidel uživateli
+    if (violations.length > 0) {
+        alert(`Nalezena porušení pravidel:\n${violations.join('\n')}`);
+    } else {
+        alert('Žádná porušení pravidel nebyla nalezena.');
+    }
+}
