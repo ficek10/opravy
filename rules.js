@@ -19,7 +19,6 @@ const RulesManager = {
         };
         const nightShifts = {
             N: 0,   // Noční
-            NSK: 0  // Noční staniční
         };
 
         // Počítání směn
